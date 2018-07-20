@@ -1,0 +1,7 @@
+module dbm [system] {
+	umbrella header "dbm.h"
+
+	link "dbm"
+	export *
+	module * { export * }
+}
