@@ -9,7 +9,8 @@
 import Foundation
 import dbm
 
-public class Database {
+public class Database<Key, Value, KeyConverter: DataConverting, ValueConverter: DataConverting>
+where KeyConverter.ValueType == Key, ValueConverter.ValueType == Value {
 
     public enum FileType {
         case hash
@@ -29,13 +30,18 @@ public class Database {
     }
 
     private let db: UnsafeMutablePointer<DB>
+    let keyConverter: KeyConverter
+    let valueConverter: ValueConverter
 
-    init?(path: String, type: FileType) {
+    init(keyConverter: KeyConverter, valueConverter: ValueConverter, path: String, type: FileType, mode: Int32) throws {
+        self.keyConverter = keyConverter
+        self.valueConverter = valueConverter
+        let flags = O_CREAT | O_RDWR
         let ptr = path.withCString { (pathPtr) in
-            return dbopen(pathPtr, 0, 0, type.dbtype, nil)
+            return dbopen(pathPtr, flags, mode, type.dbtype, nil)
         }
         guard let p = ptr else {
-            return nil
+            throw DatabaseError(errno: errno)
         }
         self.db = p
     }
@@ -44,17 +50,30 @@ public class Database {
         _ = db.pointee.close(db)
     }
 
-    private func synchronize(flags: UInt32) -> Int32 {
-        return db.pointee.sync(db, flags)
+    func synchronize(flags: UInt32) throws {
+        let result = db.pointee.sync(db, flags)
+        guard result == 0 else {
+            throw DatabaseError(errno: errno)
+        }
     }
 
-    private func delete(key: Data, flags: UInt32) -> Int32 {
-        return key.withUnsafeDBTPointer({ (keyPtr) -> Int32 in
+    func delete(key: Data, flags: UInt32) throws -> Bool {
+        let result = key.withUnsafeDBTPointer({ (keyPtr) -> Int32 in
             db.pointee.del(db, keyPtr, flags)
         })
+
+        guard result >= 0 else {
+            throw DatabaseError(errno: errno)
+        }
+        return result == 0
     }
 
-    private func get(key: Data, flags: UInt32) -> Data? {
+    func delete(key: Key, flags: UInt32) throws -> Bool {
+        let data = keyConverter.convert(from: key)
+        return try delete(key: data, flags: flags)
+    }
+
+    func get(key: Data, flags: UInt32) throws -> Data? {
         var dbt = DBT(data: nil, size: 0)
         let result = withUnsafeMutablePointer(to: &dbt) { (valuePtr) -> Int32 in
             key.withUnsafeDBTPointer({ (keyPtr) -> Int32 in
@@ -63,17 +82,66 @@ public class Database {
         }
 
         guard result == 0 else {
+            if result < 0 {
+                throw DatabaseError(errno: errno)
+            }
             return nil
         }
         return Data(bytesNoCopy: dbt.data, count: dbt.size, deallocator: .none)
     }
 
-    private func put(key: Data, value: Data, flags: UInt32) -> Int32 {
-        return key.withUnsafeMutableDBTPointer { (keyPtr) in
+    func get(key: Key, flags: UInt32) throws -> Value? {
+        let keyData = keyConverter.convert(from: key)
+        guard let valueData = try get(key: keyData, flags: flags) else {
+            return nil
+        }
+        let value = try valueConverter.unconvert(from: valueData)
+        return value
+    }
+
+    func put(key: Data, value: Data, flags: UInt32) throws -> Bool {
+        let result = key.withUnsafeMutableDBTPointer { (keyPtr) in
             value.withUnsafeDBTPointer({ (valuePtr) in
                 db.pointee.put(db, keyPtr, valuePtr, flags)
             })
         }
+
+        guard result >= 0 else {
+            throw DatabaseError(errno: errno)
+        }
+        return result == 0
+    }
+
+    func put(key: Key, value: Value, flags: UInt32) throws -> Bool {
+        let keyData = keyConverter.convert(from: key)
+        let valueData = valueConverter.convert(from: value)
+        return try put(key: keyData, value: valueData, flags: flags)
+    }
+
+    func sequence(key: inout Data, flag: UInt32) throws -> Data? {
+        var dbt = DBT(data: nil, size: 0)
+        let result = key.withUnsafeMutableDBTPointer { (keyPtr) -> Int32 in
+            withUnsafeMutablePointer(to: &dbt) { (valuePtr: UnsafeMutablePointer<DBT>) -> Int32 in
+                db.pointee.seq(db, keyPtr, valuePtr, flag)
+            }
+        }
+
+        guard result == 0 else {
+            if result < 0 {
+                throw DatabaseError(errno: errno)
+            }
+            return nil
+        }
+        return Data(bytesNoCopy: dbt.data, count: dbt.size, deallocator: .none)
+    }
+
+    func sequence(key: inout Key, flag: UInt32) throws -> Value? {
+        var keyData = keyConverter.convert(from: key)
+        guard let valueData = try sequence(key: &keyData, flag: flag) else {
+            return nil
+        }
+        key = try keyConverter.unconvert(from: keyData)
+        return try valueConverter.unconvert(from: valueData)
     }
 
 }

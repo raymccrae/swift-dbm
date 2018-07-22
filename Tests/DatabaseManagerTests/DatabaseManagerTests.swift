@@ -10,6 +10,10 @@ import XCTest
 @testable import DatabaseManager
 
 class DatabaseManagerTests: XCTestCase {
+
+    static let docpath: String = {
+        return NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+    }()
     
     override func setUp() {
         super.setUp()
@@ -22,14 +26,24 @@ class DatabaseManagerTests: XCTestCase {
     }
     
     func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+        do {
+            try FileManager.default.createDirectory(atPath: DatabaseManagerTests.docpath,
+                                                withIntermediateDirectories: true,
+                                                attributes: nil)
+
+            let keyConverter = StringDataConverter()
+            let valueConverter = StringDataConverter()
+            let dbpath = "\(DatabaseManagerTests.docpath)/test.db"
+            print(dbpath)
+            let database = try HashDatabase(keyConverter: keyConverter,
+                                            valueConverter: valueConverter,
+                                            path: dbpath)
+
+            try database.put(key: "1", value: "hello", noOverwrite: false)
+            let result = try database.get(key: "1")
+            XCTAssertEqual(result, "hello")
+        } catch {
+            XCTFail("Error: \(error)")
         }
     }
     

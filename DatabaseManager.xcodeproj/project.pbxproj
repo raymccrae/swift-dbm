@@ -13,6 +13,9 @@
 		4D242B5F21025F9200C168DF /* dbm.h in Headers */ = {isa = PBXBuildFile; fileRef = 4D242B5E21025F9200C168DF /* dbm.h */; };
 		4D242B6221025FEE00C168DF /* Data+DBM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D242B6021025FEE00C168DF /* Data+DBM.swift */; };
 		4D242B6321025FEE00C168DF /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D242B6121025FEE00C168DF /* Database.swift */; };
+		4D242B652102624A00C168DF /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D242B642102624A00C168DF /* DatabaseError.swift */; };
+		4D242B6721026B1400C168DF /* HashDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D242B6621026B1400C168DF /* HashDatabase.swift */; };
+		4D242B6921027EAE00C168DF /* DataConverting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D242B6821027EAE00C168DF /* DataConverting.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +39,9 @@
 		4D242B5E21025F9200C168DF /* dbm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dbm.h; sourceTree = "<group>"; };
 		4D242B6021025FEE00C168DF /* Data+DBM.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Data+DBM.swift"; sourceTree = "<group>"; };
 		4D242B6121025FEE00C168DF /* Database.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Database.swift; sourceTree = "<group>"; };
+		4D242B642102624A00C168DF /* DatabaseError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseError.swift; sourceTree = "<group>"; };
+		4D242B6621026B1400C168DF /* HashDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HashDatabase.swift; sourceTree = "<group>"; };
+		4D242B6821027EAE00C168DF /* DataConverting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataConverting.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,8 +86,11 @@
 			children = (
 				4D242B6021025FEE00C168DF /* Data+DBM.swift */,
 				4D242B6121025FEE00C168DF /* Database.swift */,
+				4D242B642102624A00C168DF /* DatabaseError.swift */,
 				4D242B4221025E8E00C168DF /* DatabaseManager.h */,
 				4D242B4321025E8E00C168DF /* Info.plist */,
+				4D242B6621026B1400C168DF /* HashDatabase.swift */,
+				4D242B6821027EAE00C168DF /* DataConverting.swift */,
 			);
 			path = DatabaseManager;
 			sourceTree = "<group>";
@@ -239,8 +248,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4D242B6921027EAE00C168DF /* DataConverting.swift in Sources */,
 				4D242B6321025FEE00C168DF /* Database.swift in Sources */,
 				4D242B6221025FEE00C168DF /* Data+DBM.swift in Sources */,
+				4D242B6721026B1400C168DF /* HashDatabase.swift in Sources */,
+				4D242B652102624A00C168DF /* DatabaseError.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,7 +456,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K4NMNJAGZ8;
-				INFOPLIST_FILE = DatabaseManagerTests/Info.plist;
+				INFOPLIST_FILE = Tests/DatabaseManagerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -463,7 +475,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = K4NMNJAGZ8;
-				INFOPLIST_FILE = DatabaseManagerTests/Info.plist;
+				INFOPLIST_FILE = Tests/DatabaseManagerTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
