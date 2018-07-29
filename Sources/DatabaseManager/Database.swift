@@ -9,8 +9,10 @@
 import Foundation
 import dbm
 
-public class Database<Key, Value, KeyConverter: DataConverting, ValueConverter: DataConverting>
-where KeyConverter.ValueType == Key, ValueConverter.ValueType == Value {
+public class Database<KeyConverter: DataConverting, ValueConverter: DataConverting> {
+
+    typealias Key = KeyConverter.ValueType
+    typealias Value = ValueConverter.ValueType
 
     public enum FileType {
         case hash
@@ -32,18 +34,25 @@ where KeyConverter.ValueType == Key, ValueConverter.ValueType == Value {
     private let db: UnsafeMutablePointer<DB>
     let keyConverter: KeyConverter
     let valueConverter: ValueConverter
+    let queue: DispatchQueue
 
-    init(keyConverter: KeyConverter, valueConverter: ValueConverter, path: String, type: FileType, mode: Int32) throws {
+    init(keyConverter: KeyConverter,
+         valueConverter: ValueConverter,
+         path: String,
+         type: FileType,
+         mode: Int32,
+         info: UnsafeRawPointer?) throws {
         self.keyConverter = keyConverter
         self.valueConverter = valueConverter
         let flags = O_CREAT | O_RDWR
         let ptr = path.withCString { (pathPtr) in
-            return dbopen(pathPtr, flags, mode, type.dbtype, nil)
+            return dbopen(pathPtr, flags, mode, type.dbtype, info)
         }
         guard let p = ptr else {
             throw DatabaseError(errno: errno)
         }
         self.db = p
+        self.queue = DispatchQueue(label: "DBM - \(path)")
     }
 
     deinit {

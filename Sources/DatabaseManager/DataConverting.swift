@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import dbm
 
 public protocol DataConverting {
 
@@ -20,6 +21,54 @@ public protocol DataConverting {
 
 public enum DataConvertingError: Error {
     case invalidEncoding
+}
+
+protocol AnyDataConverting {
+    func convert(from value: Any) -> Data
+    func unconvert(from data: Data) throws -> Any
+}
+
+struct AnyDataConverterBox<T: DataConverting>: AnyDataConverting {
+    let boxed: T
+
+    init(boxed: T) {
+        self.boxed = boxed
+    }
+
+    func convert(from value: Any) -> Data {
+        return boxed.convert(from: value as! T.ValueType)
+    }
+
+    func unconvert(from data: Data) throws -> Any {
+        return try boxed.unconvert(from: data)
+    }
+}
+
+protocol AnyDataComparing {
+    func compare(a: Data, b: Data) throws -> ComparisonResult
+}
+
+struct AnyDataComparatorBox<T: DataConverting>: AnyDataComparing where T.ValueType: Comparable {
+
+    let boxed: T
+
+    init(boxed: T) {
+        self.boxed = boxed
+    }
+
+    func compare(a: Data, b: Data) throws -> ComparisonResult {
+        let valueA = try boxed.unconvert(from: a)
+        let valueB = try boxed.unconvert(from: b)
+
+        if valueA > valueB {
+            return .orderedDescending
+        } else if valueA == valueB {
+            return .orderedSame
+        } else {
+            return .orderedAscending
+        }
+    }
+
 }
 
 public class StringDataConverter: DataConverting {
@@ -36,4 +85,9 @@ public class StringDataConverter: DataConverting {
         }
         return value
     }
+
+}
+
+public func StringDataConverterCompare(a: UnsafePointer<DBT>?, b: UnsafePointer<DBT>?) -> Int32 {
+    return 0
 }

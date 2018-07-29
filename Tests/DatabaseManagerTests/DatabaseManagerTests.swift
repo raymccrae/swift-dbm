@@ -27,6 +27,17 @@ class DatabaseManagerTests: XCTestCase {
     
     func testExample() {
         do {
+//            var info = HashDatabase<StringDataConverter,StringDataConverter>.Info()
+//            info.hashBlock = { (buf, size) in
+//                guard let buf = buf else {
+//                    return 0
+//                }
+//                let data = Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: buf),
+//                                count: size,
+//                                deallocator: .none)
+//                return UInt32(data.hashValue)
+//            }
+
             try FileManager.default.createDirectory(atPath: DatabaseManagerTests.docpath,
                                                 withIntermediateDirectories: true,
                                                 attributes: nil)

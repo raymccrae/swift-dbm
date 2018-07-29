@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4D173854210CCF0D00240556 /* BTreeDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D173853210CCF0D00240556 /* BTreeDatabase.swift */; };
 		4D242B4921025E8E00C168DF /* DatabaseManager.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D242B3F21025E8E00C168DF /* DatabaseManager.framework */; };
 		4D242B4E21025E8E00C168DF /* DatabaseManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D242B4D21025E8E00C168DF /* DatabaseManagerTests.swift */; };
 		4D242B5021025E8E00C168DF /* DatabaseManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 4D242B4221025E8E00C168DF /* DatabaseManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -29,6 +30,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4D173853210CCF0D00240556 /* BTreeDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BTreeDatabase.swift; sourceTree = "<group>"; };
 		4D242B3F21025E8E00C168DF /* DatabaseManager.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = DatabaseManager.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		4D242B4221025E8E00C168DF /* DatabaseManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DatabaseManager.h; sourceTree = "<group>"; };
 		4D242B4321025E8E00C168DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -84,13 +86,14 @@
 		4D242B4121025E8E00C168DF /* DatabaseManager */ = {
 			isa = PBXGroup;
 			children = (
+				4D242B4221025E8E00C168DF /* DatabaseManager.h */,
 				4D242B6021025FEE00C168DF /* Data+DBM.swift */,
 				4D242B6121025FEE00C168DF /* Database.swift */,
 				4D242B642102624A00C168DF /* DatabaseError.swift */,
-				4D242B4221025E8E00C168DF /* DatabaseManager.h */,
-				4D242B4321025E8E00C168DF /* Info.plist */,
 				4D242B6621026B1400C168DF /* HashDatabase.swift */,
+				4D173853210CCF0D00240556 /* BTreeDatabase.swift */,
 				4D242B6821027EAE00C168DF /* DataConverting.swift */,
+				4D242B4321025E8E00C168DF /* Info.plist */,
 			);
 			path = DatabaseManager;
 			sourceTree = "<group>";
@@ -251,6 +254,7 @@
 				4D242B6921027EAE00C168DF /* DataConverting.swift in Sources */,
 				4D242B6321025FEE00C168DF /* Database.swift in Sources */,
 				4D242B6221025FEE00C168DF /* Data+DBM.swift in Sources */,
+				4D173854210CCF0D00240556 /* BTreeDatabase.swift in Sources */,
 				4D242B6721026B1400C168DF /* HashDatabase.swift in Sources */,
 				4D242B652102624A00C168DF /* DatabaseError.swift in Sources */,
 			);
