@@ -78,7 +78,7 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
     }
 
     func delete(key: Key, flags: UInt32) throws -> Bool {
-        let data = keyConverter.convert(from: key)
+        let data = try keyConverter.convert(from: key)
         return try delete(key: data, flags: flags)
     }
 
@@ -100,7 +100,7 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
     }
 
     func get(key: Key, flags: UInt32) throws -> Value? {
-        let keyData = keyConverter.convert(from: key)
+        let keyData = try keyConverter.convert(from: key)
         guard let valueData = try get(key: keyData, flags: flags) else {
             return nil
         }
@@ -122,8 +122,8 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
     }
 
     func put(key: Key, value: Value, flags: UInt32) throws -> Bool {
-        let keyData = keyConverter.convert(from: key)
-        let valueData = valueConverter.convert(from: value)
+        let keyData = try keyConverter.convert(from: key)
+        let valueData = try valueConverter.convert(from: value)
         return try put(key: keyData, value: valueData, flags: flags)
     }
 
@@ -145,7 +145,7 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
     }
 
     func sequence(key: inout Key, flag: UInt32) throws -> Value? {
-        var keyData = keyConverter.convert(from: key)
+        var keyData = try keyConverter.convert(from: key)
         guard let valueData = try sequence(key: &keyData, flag: flag) else {
             return nil
         }

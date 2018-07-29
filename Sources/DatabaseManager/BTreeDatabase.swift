@@ -20,21 +20,18 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
 
         func hashinfo() -> UnsafeMutablePointer<BTREEINFO> {
             let ptr = UnsafeMutablePointer<BTREEINFO>.allocate(capacity: 1)
-//            ptr.pointee.compare = StringDataConverterCompare
+
             ptr.pointee.compare = { (a, b) in
                 do {
                     guard let comparator = DispatchQueue.getSpecific(key: KeyComparatorKey) else {
-                        assertionFailure()
-                        return 0
+                        fatalError("Key comparator not set on dispatch queue specific")
                     }
 
-                    guard let ptrA = a, let ptrB = b else {
-                        return a == b ? 0 : a != nil ? -1 : 1
+                    guard let dataA = Data(dbt: a) else {
+                        return b != nil ? 1 : 0
                     }
-
-                    guard let dataA = Data.data(from: ptrA),
-                        let dataB = Data.data(from: ptrB) else {
-                            return 0
+                    guard let dataB = Data(dbt: b) else {
+                        return -1
                     }
                     let comparison = try comparator.compare(a: dataA, b: dataB)
                     return Int32(comparison.rawValue)
@@ -50,15 +47,28 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
 
     public init(keyConverter: KeyConverter,
                 valueConverter: ValueConverter,
-                path: String) throws {
+                path: String,
+                mode: Int32 = 0o664,
+                info: Info? = nil) throws {
         comparator = AnyDataComparatorBox(boxed: keyConverter)
+
+        let btreeinfo: UnsafeMutablePointer<BTREEINFO>?
+        if let info = info {
+            btreeinfo = info.hashinfo()
+        } else {
+            btreeinfo = nil
+        }
 
         try super.init(keyConverter: keyConverter,
                        valueConverter: valueConverter,
                        path: path,
                        type: .btree,
-                       mode: 0o664,
-                       info: nil)
+                       mode: mode,
+                       info: btreeinfo)
+
+        if let ptr = btreeinfo {
+            ptr.deallocate()
+        }
     }
 
     public func synchronize() throws {

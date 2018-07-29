@@ -13,7 +13,7 @@ public protocol DataConverting {
 
     associatedtype ValueType
 
-    func convert(from value: ValueType) -> Data
+    func convert(from value: ValueType) throws -> Data
 
     func unconvert(from data: Data) throws -> ValueType
 
@@ -24,7 +24,7 @@ public enum DataConvertingError: Error {
 }
 
 protocol AnyDataConverting {
-    func convert(from value: Any) -> Data
+    func convert(from value: Any) throws -> Data
     func unconvert(from data: Data) throws -> Any
 }
 
@@ -35,8 +35,8 @@ struct AnyDataConverterBox<T: DataConverting>: AnyDataConverting {
         self.boxed = boxed
     }
 
-    func convert(from value: Any) -> Data {
-        return boxed.convert(from: value as! T.ValueType)
+    func convert(from value: Any) throws -> Data {
+        return try boxed.convert(from: value as! T.ValueType)
     }
 
     func unconvert(from data: Data) throws -> Any {
@@ -86,8 +86,4 @@ public class StringDataConverter: DataConverting {
         return value
     }
 
-}
-
-public func StringDataConverterCompare(a: UnsafePointer<DBT>?, b: UnsafePointer<DBT>?) -> Int32 {
-    return 0
 }

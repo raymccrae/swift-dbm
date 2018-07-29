@@ -11,11 +11,11 @@ import dbm
 
 extension Data {
 
-    static func data(from dbt: UnsafePointer<DBT>) -> Data? {
-        guard let ptr = dbt.pointee.data else {
+    init?(dbt: UnsafePointer<DBT>?) {
+        guard let dbt = dbt, let ptr = dbt.pointee.data else {
             return nil
         }
-        return Data(bytesNoCopy: ptr, count: dbt.pointee.size, deallocator: .none)
+        self.init(bytesNoCopy: ptr, count: dbt.pointee.size, deallocator: .none)
     }
 
     func withUnsafeDBTPointer<ResultType>(_ body: (UnsafePointer<DBT>) throws -> ResultType) rethrows  -> ResultType {
