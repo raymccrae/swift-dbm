@@ -9,27 +9,27 @@
 import Foundation
 import dbm
 
+public enum FileType {
+    case hash
+    case btree
+    case record
+
+    fileprivate var dbtype: DBTYPE {
+        switch self {
+        case .hash:
+            return DB_HASH
+        case .btree:
+            return DB_BTREE
+        case .record:
+            return DB_RECNO
+        }
+    }
+}
+
 public class Database<KeyConverter: DataConverting, ValueConverter: DataConverting> {
 
     typealias Key = KeyConverter.ValueType
     typealias Value = ValueConverter.ValueType
-
-    public enum FileType {
-        case hash
-        case btree
-        case record
-
-        fileprivate var dbtype: DBTYPE {
-            switch self {
-            case .hash:
-                return DB_HASH
-            case .btree:
-                return DB_BTREE
-            case .record:
-                return DB_RECNO
-            }
-        }
-    }
 
     private let db: UnsafeMutablePointer<DB>
     let keyConverter: KeyConverter

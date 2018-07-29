@@ -19,19 +19,30 @@ public protocol DataConverting {
 
 }
 
+public protocol ComparableDataConverting: DataConverting {
+
+    func compare(a: Data, b: Data) -> ComparisonResult
+
+}
+
+public protocol DataComparing {
+    func compare(a: Data, b: Data) -> ComparisonResult
+}
+
 public enum DataConvertingError: Error {
     case invalidEncoding
 }
 
-protocol AnyDataConverting {
+protocol AnyComparableDataConverting {
     func convert(from value: Any) throws -> Data
     func unconvert(from data: Data) throws -> Any
+    func compare(a: Data, b: Data) -> ComparisonResult
 }
 
-struct AnyDataConverterBox<T: DataConverting>: AnyDataConverting {
+struct AnyComparableDataConverterBox<T: ComparableDataConverting>: AnyComparableDataConverting {
     let boxed: T
 
-    init(boxed: T) {
+    init(_ boxed: T) {
         self.boxed = boxed
     }
 
@@ -42,38 +53,18 @@ struct AnyDataConverterBox<T: DataConverting>: AnyDataConverting {
     func unconvert(from data: Data) throws -> Any {
         return try boxed.unconvert(from: data)
     }
-}
 
-protocol AnyDataComparing {
-    func compare(a: Data, b: Data) throws -> ComparisonResult
-}
-
-struct AnyDataComparatorBox<T: DataConverting>: AnyDataComparing where T.ValueType: Comparable {
-
-    let boxed: T
-
-    init(boxed: T) {
-        self.boxed = boxed
+    func compare(a: Data, b: Data) -> ComparisonResult {
+        return boxed.compare(a: a, b: b)
     }
-
-    func compare(a: Data, b: Data) throws -> ComparisonResult {
-        let valueA = try boxed.unconvert(from: a)
-        let valueB = try boxed.unconvert(from: b)
-
-        if valueA > valueB {
-            return .orderedDescending
-        } else if valueA == valueB {
-            return .orderedSame
-        } else {
-            return .orderedAscending
-        }
-    }
-
 }
 
 public class StringDataConverter: DataConverting {
 
     public typealias ValueType = String
+
+    public init() {
+    }
 
     public func convert(from value: ValueType) -> Data {
         return Data(value.utf8)

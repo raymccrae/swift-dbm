@@ -44,13 +44,13 @@ class DatabaseManagerTests: XCTestCase {
 
             let keyConverter = StringDataConverter()
             let valueConverter = StringDataConverter()
-            let dbpath = "\(DatabaseManagerTests.docpath)/test.db"
+            let dbpath = "\(DatabaseManagerTests.docpath)/hash.db"
             print(dbpath)
             let database = try HashDatabase(keyConverter: keyConverter,
                                             valueConverter: valueConverter,
                                             path: dbpath)
 
-            try database.put(key: "1", value: "hello", noOverwrite: false)
+            try database.put(key: "1", value: "hello")
             let result = try database.get(key: "1")
             XCTAssertEqual(result, "hello")
         } catch {
