@@ -23,9 +23,16 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
 
     public struct Info {
 
+        var allowDuplicateKeys: Bool = false
+        var cacheSize: UInt32 = 0
+        var minimumKeysPerPage: Int32 = 0
+        var pageSize: UInt32 = 0
+        var byteOrder: CFByteOrder = CFByteOrder(CFByteOrderUnknown.rawValue)
+
         func hashinfo() -> UnsafeMutablePointer<BTREEINFO> {
             let ptr = UnsafeMutablePointer<BTREEINFO>.allocate(capacity: 1)
 
+            ptr.pointee.flags = allowDuplicateKeys ? UInt(R_DUP) : 0
             ptr.pointee.compare = { (a, b) in
                 guard let comparator = DispatchQueue.getSpecific(key: KeyConvertingKey) else {
                     fatalError("Key comparator not set on dispatch queue specific")
@@ -127,12 +134,13 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
 
     @discardableResult
     public func put(key: Key,
-                    value: Value) throws -> Bool {
+                    value: Value,
+                    noOverwrite: Bool = false) throws -> Bool {
         return try queue.sync {
             queue.setSpecific(key: KeyConvertingKey, value: comparator)
             return try put(key: key,
                            value: value,
-                           flags: 0)
+                           flags: noOverwrite ? UInt32(R_NOOVERWRITE) : 0)
         }
     }
 

@@ -108,6 +108,18 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
         return value
     }
 
+    /// Puts a key value pair into the database. This method directly wraps
+    /// the underlying call to the dbm put method. The key and value must
+    /// have been converted to a data representation before calling this method.
+    ///
+    /// This is an internal method for the module and is not mean to get called
+    /// directly by users of the module. Sub-classes of Database should hide the
+    /// raw flag values with more meaningful and type-safe means.
+    ///
+    /// - Parameters:
+    ///   - key: The key represented as data
+    ///   - value: The value represented as data
+    ///   - flags: The raw flag values passed to dbm put function. Type Dependent.
     func put(key: Data, value: Data, flags: UInt32) throws -> Bool {
         let result = key.withUnsafeMutableDBTPointer { (keyPtr) in
             value.withUnsafeDBTPointer({ (valuePtr) in
