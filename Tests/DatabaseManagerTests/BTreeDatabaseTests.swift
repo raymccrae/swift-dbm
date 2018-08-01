@@ -18,20 +18,24 @@ class BTreeDatabaseTests: XCTestCase {
     
     func testExample() {
         do {
-            let keyConverter = StringDataConverter()
+            let keyConverter = IntDataConverter()
             let valueConverter = StringDataConverter()
             let dbpath = "\(DatabaseManagerTests.docpath)/btree.db"
             let btree = try BTreeDatabase(keyConverter: keyConverter,
                                           valueConverter: valueConverter,
                                           path: dbpath)
 
-            try btree.put(key: "test", value: "hello")
-            let fetched = try btree.get(key: "test")
+            try btree.put(key: 1_000_000, value: "hello")
+            let fetched = try btree.get(key: 1_000_000)
             XCTAssertEqual(fetched, "hello")
-            for i in 1...1_000_000 {
-                try btree.put(key: "\(i)", value: "test")
+            for i in 1...10 {
+                try btree.put(key: i, value: "test")
             }
             XCTAssertEqual(fetched, "hello")
+
+            try btree.enumerateValues { (key, value, _) in
+                print("\(key): \(value)")
+            }
         } catch {
             XCTFail("Error: \(error)")
         }

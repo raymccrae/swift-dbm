@@ -29,10 +29,17 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
         var pageSize: UInt32 = 0
         var byteOrder: CFByteOrder = CFByteOrder(CFByteOrderUnknown.rawValue)
 
-        func hashinfo() -> UnsafeMutablePointer<BTREEINFO> {
+        func btreeinfo() -> UnsafeMutablePointer<BTREEINFO> {
             let ptr = UnsafeMutablePointer<BTREEINFO>.allocate(capacity: 1)
 
             ptr.pointee.flags = allowDuplicateKeys ? UInt(R_DUP) : 0
+            ptr.pointee.cachesize = cacheSize
+            ptr.pointee.minkeypage = minimumKeysPerPage
+            ptr.pointee.maxkeypage = 0 // Unused
+            ptr.pointee.psize = pageSize
+            ptr.pointee.lorder = 0
+            ptr.pointee.prefix = nil
+
             ptr.pointee.compare = { (a, b) in
                 guard let comparator = DispatchQueue.getSpecific(key: KeyConvertingKey) else {
                     fatalError("Key comparator not set on dispatch queue specific")
@@ -75,7 +82,7 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
                             info: Info? = nil) throws {
         let btreeinfo: UnsafeMutablePointer<BTREEINFO>?
         if let info = info {
-            btreeinfo = info.hashinfo()
+            btreeinfo = info.btreeinfo()
         } else {
             btreeinfo = nil
         }
@@ -91,33 +98,6 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
             ptr.deallocate()
         }
     }
-
-//    public init(keyConverter: KeyConverter,
-//                valueConverter: ValueConverter,
-//                path: String,
-//                mode: Int32 = 0o664,
-//                info: Info? = nil) throws {
-//        comparator = AnyComparableDataConverterBox(keyConverter)
-//        self.comparator = nil
-//
-//        let btreeinfo: UnsafeMutablePointer<BTREEINFO>?
-//        if let info = info {
-//            btreeinfo = info.hashinfo()
-//        } else {
-//            btreeinfo = nil
-//        }
-//
-//        try super.init(keyConverter: keyConverter,
-//                       valueConverter: valueConverter,
-//                       path: path,
-//                       type: .btree,
-//                       mode: mode,
-//                       info: btreeinfo)
-//
-//        if let ptr = btreeinfo {
-//            ptr.deallocate()
-//        }
-//    }
 
     public func synchronize() throws {
         try queue.sync {
@@ -144,6 +124,17 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
         }
     }
 
+    override func sequence(flag: UInt32) throws -> (Key, Value)? {
+        return try queue.sync {
+            queue.setSpecific(key: KeyConvertingKey, value: comparator)
+            return try super.sequence(flag: flag)
+        }
+    }
+
+    public override func enumerateValues(_ closure: (Key, Value, inout Bool) throws -> Void) throws {
+            try super.enumerateValues(closure)
+    }
+
 }
 
 extension BTreeDatabase where KeyConverter: ComparableDataConverting {
@@ -153,11 +144,9 @@ extension BTreeDatabase where KeyConverter: ComparableDataConverting {
                             path: String,
                             mode: Int32 = 0o664,
                             info: Info? = nil) throws {
-        let btreeinfo: UnsafeMutablePointer<BTREEINFO>?
-        if let info = info {
-            btreeinfo = info.hashinfo()
-        } else {
-            btreeinfo = nil
+        let btreeinfo = (info ?? Info()).btreeinfo()
+        defer {
+            btreeinfo.deallocate()
         }
 
         try self.init(keyConverter: keyConverter,
@@ -166,34 +155,6 @@ extension BTreeDatabase where KeyConverter: ComparableDataConverting {
                       mode: mode,
                       btreeinfo: btreeinfo,
                       comparator: AnyComparableDataConverterBox(keyConverter))
-
-        if let ptr = btreeinfo {
-            ptr.deallocate()
-        }
     }
 
-//    public init(keyConverter: KeyConverter,
-//                valueConverter: ValueConverter,
-//                path: String,
-//                mode: Int32 = 0o664,
-//                info: Info? = nil) throws {
-//        comparator = AnyComparableDataConverterBox(keyConverter)
-//        let btreeinfo: UnsafeMutablePointer<BTREEINFO>?
-//        if let info = info {
-//            btreeinfo = info.hashinfo()
-//        } else {
-//            btreeinfo = nil
-//        }
-//
-//        try super.init(keyConverter: keyConverter,
-//                       valueConverter: valueConverter,
-//                       path: path,
-//                       type: .btree,
-//                       mode: mode,
-//                       info: btreeinfo)
-//
-//        if let ptr = btreeinfo {
-//            ptr.deallocate()
-//        }
-//    }
 }

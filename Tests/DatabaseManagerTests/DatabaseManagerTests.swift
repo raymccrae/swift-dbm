@@ -50,9 +50,15 @@ class DatabaseManagerTests: XCTestCase {
                                             valueConverter: valueConverter,
                                             path: dbpath)
 
-            try database.put(key: "1", value: "hello")
+            try database.put(key: "2", value: "goodbye")
             let result = try database.get(key: "1")
             XCTAssertEqual(result, "hello")
+
+            try database.enumerateValues({ (key, value, stop) in
+                print("Key: \(key)")
+                stop = true
+            })
+
         } catch {
             XCTFail("Error: \(error)")
         }

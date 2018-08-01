@@ -78,3 +78,49 @@ public class StringDataConverter: DataConverting {
     }
 
 }
+
+public class IntDataConverter: ComparableDataConverting {
+
+    public typealias ValueType = Int
+
+    private let sizeOfInt: Int
+
+    public init() {
+        let value: Int = 0
+        sizeOfInt = MemoryLayout.size(ofValue: value)
+    }
+
+    public func compare(a: Data, b: Data) -> ComparisonResult {
+        let intA = (try? unconvert(from: a)) ?? 0
+        let intB = (try? unconvert(from: b)) ?? 0
+
+        if (intA < intB) {
+            return .orderedAscending
+        } else if intA == intB {
+            return .orderedSame
+        } else {
+            return .orderedDescending
+        }
+    }
+
+    public func convert(from value: Int) -> Data {
+        var i = value
+        let data = withUnsafePointer(to: &i) { (intPtr) -> Data in
+            Data(bytes: intPtr, count: sizeOfInt)
+        }
+        return data
+    }
+
+    public func unconvert(from data: Data) throws -> Int {
+        guard data.count == sizeOfInt else {
+            throw DatabaseError(errno: 0)
+        }
+
+        let value = data.withUnsafeBytes { (intPtr: UnsafePointer<Int>) -> Int in
+            intPtr.pointee
+        }
+
+        return value
+    }
+
+}
