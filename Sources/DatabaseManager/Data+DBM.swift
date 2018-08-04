@@ -11,6 +11,10 @@ import dbm
 
 extension Data {
 
+    init(dbt: DBT) {
+        self.init(bytesNoCopy: dbt.data, count: dbt.size, deallocator: .none)
+    }
+
     init?(dbt: UnsafePointer<DBT>?) {
         guard let dbt = dbt, let ptr = dbt.pointee.data else {
             return nil

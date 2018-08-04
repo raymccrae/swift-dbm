@@ -33,7 +33,11 @@ class BTreeDatabaseTests: XCTestCase {
             }
             XCTAssertEqual(fetched, "hello")
 
-            try btree.enumerateValues { (key, value, _) in
+//            try btree.enumerateValues { (key, value, _) in
+//                print("\(key): \(value)")
+//            }
+
+            try btree.enumerate(5) { (key, value, _) in
                 print("\(key): \(value)")
             }
         } catch {
