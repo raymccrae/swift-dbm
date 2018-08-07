@@ -139,15 +139,13 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
         return try put(key: keyData, value: valueData, flags: flags)
     }
 
-    func sequenceRawData(key: Data? = nil, flag: UInt32) throws -> (Data, Data)? {
+    func sequenceRawData(ptr: UnsafePointer<UInt8>? = nil, size: Int? = nil, flag: UInt32) throws -> (Data, Data)? {
         var keyDBT = DBT(data: nil, size: 0)
         var valueDBT = DBT(data: nil, size: 0)
 
-        if let key = key {
-            key.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) -> Void in
-                keyDBT.data = UnsafeMutableRawPointer(mutating: ptr)
-                keyDBT.size = key.count
-            }
+        if let ptr = ptr, let size = size {
+            keyDBT.data = UnsafeMutableRawPointer(mutating: ptr)
+            keyDBT.size = size
         }
 
         let result = withUnsafeMutablePointer(to: &keyDBT) { (keyDBTPtr) -> Int32 in
@@ -168,7 +166,14 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
         return (key, value)
     }
 
-    func sequence(key: Key? = nil, flag: UInt32) throws -> (Key, Value)? {
+    func sequenceRawData(key: Data, flag: UInt32) throws -> (Data, Data)? {
+        let size = key.count
+        return try key.withUnsafeBytes { (ptr: UnsafePointer<UInt8>) throws -> (Data, Data)? in
+            try sequenceRawData(ptr: ptr, size: size, flag: flag)
+        }
+    }
+
+    func sequence(key: Key? = nil, end: Data? = nil, flag: UInt32) throws -> (Key, Value)? {
         let keyData: Data?
         if let key = key {
             keyData = try keyConverter.convert(from: key)
@@ -176,8 +181,16 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
             keyData = nil
         }
 
-        let result: (Data, Data)? = try sequenceRawData(key: keyData, flag: flag)
+        let result: (Data, Data)?
+        if let data = keyData {
+            result = try sequenceRawData(key: data, flag: flag)
+        } else {
+            result = try sequenceRawData(flag: flag)
+        }
         guard let r = result else {
+            return nil
+        }
+        if let end = end, end < r.0 {
             return nil
         }
         let key = try keyConverter.unconvert(from: r.0)
@@ -185,47 +198,26 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
         return (key, value)
     }
 
-    func enumerateValues(_ closure: (Key, Value, inout Bool) throws -> Void) throws {
+    func enumerate(start: Key?, end: Key? = nil, _ body: (Key, Value, inout Bool) throws -> Void) throws {
         var stop: Bool = false
-        var flag: UInt32 = UInt32(R_FIRST)
-
-        repeat {
-            let result: (Key, Value)? = try sequence(flag: flag)
-            flag = UInt32(R_NEXT)
-            guard let r = result else {
-                break
-            }
-            try closure(r.0, r.1, &stop)
-        } while !stop
-    }
-
-    func reverseEnumerateValues(_ closure: (Key, Value, inout Bool) throws -> Void) throws {
-        var stop: Bool = false
-        var flag: UInt32 = UInt32(R_LAST)
-
-        repeat {
-            let result: (Key, Value)? = try sequence(flag: flag)
-            flag = UInt32(R_PREV)
-            guard let r = result else {
-                break
-            }
-            try closure(r.0, r.1, &stop)
-        } while !stop
-    }
-
-    func enumerate(_ start: Key, _ end: Key? = nil, _ closure: (Key, Value, inout Bool) throws -> Void) throws {
-        var stop: Bool = false
-        var flag: UInt32 = 0
+        var flag: UInt32 = start == nil ? UInt32(R_FIRST) : UInt32(R_CURSOR)
         var key: Key? = start
+        let endData: Data?
+
+        if let end = end {
+            endData = try keyConverter.convert(from: end)
+        } else {
+            endData = nil
+        }
 
         repeat {
-            let result: (Key, Value)? = try sequence(key: key, flag: flag)
+            let result: (Key, Value)? = try sequence(key: key, end: endData, flag: flag)
             flag = UInt32(R_NEXT)
             key = nil
             guard let r = result else {
                 break
             }
-            try closure(r.0, r.1, &stop)
+            try body(r.0, r.1, &stop)
         } while !stop
     }
 

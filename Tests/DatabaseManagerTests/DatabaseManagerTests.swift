@@ -24,6 +24,13 @@ class DatabaseManagerTests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
+
+    func testDataCompare() {
+        let a = Data("helo".utf8)
+        let b = Data("hell".utf8)
+
+        print(a < b)
+    }
     
     func testExample() {
         do {
@@ -46,17 +53,23 @@ class DatabaseManagerTests: XCTestCase {
             let valueConverter = StringDataConverter()
             let dbpath = "\(DatabaseManagerTests.docpath)/hash.db"
             print(dbpath)
+            var info = HashDatabase<StringDataConverter,StringDataConverter>.Info()
+            info.lorder = 0
+
             let database = try HashDatabase(keyConverter: keyConverter,
                                             valueConverter: valueConverter,
-                                            path: dbpath)
+                                            path: dbpath,
+                                            info: info)
 
+            try database.put(key: "1", value: "hello")
+            try database.synchronize()
             try database.put(key: "2", value: "goodbye")
             let result = try database.get(key: "1")
             XCTAssertEqual(result, "hello")
 
-            try database.enumerateValues({ (key, value, stop) in
+            try database.enumerate({ (key, value, stop) in
                 print("Key: \(key)")
-                stop = true
+//                stop = true
             })
 
         } catch {

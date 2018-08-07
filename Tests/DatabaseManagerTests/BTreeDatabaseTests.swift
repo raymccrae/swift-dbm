@@ -37,7 +37,7 @@ class BTreeDatabaseTests: XCTestCase {
 //                print("\(key): \(value)")
 //            }
 
-            try btree.enumerate(5) { (key, value, _) in
+            try btree.enumerate(end: 7) { (key, value, _) in
                 print("\(key): \(value)")
             }
         } catch {

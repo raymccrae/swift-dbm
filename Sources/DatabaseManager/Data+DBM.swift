@@ -40,4 +40,18 @@ extension Data {
         }
     }
 
+    static func < (lhs: Data, rhs: Data) -> Bool {
+        let minlen = Swift.min(lhs.count, rhs.count)
+        let result = lhs.withUnsafeBytes { (lhsPtr) -> Int32 in
+            rhs.withUnsafeBytes { (rhsPtr) -> Int32 in
+                memcmp(lhsPtr, rhsPtr, minlen)
+            }
+        }
+        if result == 0 {
+            return lhs.count < rhs.count
+        } else {
+            return result < 0
+        }
+    }
+
 }

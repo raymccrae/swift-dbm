@@ -56,7 +56,7 @@ public class HashDatabase<KeyConverter: DataConverting, ValueConverter: DataConv
                        path: path,
                        type: .hash,
                        mode: mode,
-                       info:hashinfo)
+                       info: hashinfo)
         if let ptr = hashinfo {
             ptr.deallocate()
         }
@@ -81,6 +81,10 @@ public class HashDatabase<KeyConverter: DataConverting, ValueConverter: DataConv
 
     public func delete(key: Key) throws -> Bool {
         return try delete(key: key, flags: 0)
+    }
+
+    public func enumerate(_ body: (Key, Value, inout Bool) throws -> Void) throws {
+        try super.enumerate(start: nil, end: nil, body)
     }
 
 }
