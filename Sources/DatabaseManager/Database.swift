@@ -173,7 +173,10 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
         }
     }
 
-    func sequence(key: Key? = nil, end: Data? = nil, flag: UInt32) throws -> (Key, Value)? {
+    func sequence(key: Key? = nil,
+                  end: Data? = nil,
+                  comparator: AnyComparableDataConverting? = nil,
+                  flag: UInt32) throws -> (Key, Value)? {
         let keyData: Data?
         if let key = key {
             keyData = try keyConverter.convert(from: key)
@@ -190,15 +193,26 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
         guard let r = result else {
             return nil
         }
-        if let end = end, end < r.0 {
-            return nil
+        if let end = end {
+            if let comparator = comparator {
+                if comparator.compare(a: r.0, b: end) == .orderedDescending {
+                    return nil
+                }
+            } else {
+                if end < r.0 {
+                    return nil
+                }
+            }
         }
         let key = try keyConverter.unconvert(from: r.0)
         let value = try valueConverter.unconvert(from: r.1)
         return (key, value)
     }
 
-    func enumerate(start: Key?, end: Key? = nil, _ body: (Key, Value, inout Bool) throws -> Void) throws {
+    func enumerate(start: Key?,
+                   end: Key? = nil,
+                   comparator: AnyComparableDataConverting? = nil,
+                   _ body: (Key, Value, inout Bool) throws -> Void) throws {
         var stop: Bool = false
         var flag: UInt32 = start == nil ? UInt32(R_FIRST) : UInt32(R_CURSOR)
         var key: Key? = start
@@ -211,7 +225,10 @@ public class Database<KeyConverter: DataConverting, ValueConverter: DataConverti
         }
 
         repeat {
-            let result: (Key, Value)? = try sequence(key: key, end: endData, flag: flag)
+            let result: (Key, Value)? = try sequence(key: key,
+                                                     end: endData,
+                                                     comparator: comparator,
+                                                     flag: flag)
             flag = UInt32(R_NEXT)
             key = nil
             guard let r = result else {

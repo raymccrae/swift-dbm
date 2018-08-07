@@ -124,3 +124,29 @@ public class IntDataConverter: ComparableDataConverting {
     }
 
 }
+
+public class CaseInsensitiveUTF8DataConverter: ComparableDataConverting {
+
+    public typealias ValueType = String
+
+    public init() {
+    }
+
+    public func compare(a: Data, b: Data) -> ComparisonResult {
+        let strA = (try? unconvert(from: a)) ?? ""
+        let strB = (try? unconvert(from: b)) ?? ""
+
+        return strA.caseInsensitiveCompare(strB)
+    }
+
+    public func convert(from value: ValueType) -> Data {
+        return Data(value.utf8)
+    }
+
+    public func unconvert(from data: Data) throws -> ValueType {
+        guard let value = String(data: data, encoding: .utf8) else {
+            throw DataConvertingError.invalidEncoding
+        }
+        return value
+    }
+}

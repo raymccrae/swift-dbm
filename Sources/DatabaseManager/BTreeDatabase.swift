@@ -124,15 +124,26 @@ public class BTreeDatabase<KeyConverter: DataConverting, ValueConverter: DataCon
         }
     }
 
-    override func sequence(key: Key? = nil, end: Data? = nil, flag: UInt32) throws -> (Key, Value)? {
+    override func sequence(key: Key? = nil,
+                           end: Data? = nil,
+                           comparator: AnyComparableDataConverting? = nil,
+                           flag: UInt32) throws -> (Key, Value)? {
         return try queue.sync {
             queue.setSpecific(key: KeyConvertingKey, value: comparator)
-            return try super.sequence(key: key, end: end, flag: flag)
+            return try super.sequence(key: key,
+                                      end: end,
+                                      comparator: comparator,
+                                      flag: flag)
         }
     }
 
-    public override func enumerate(start: Key? = nil, end: Key? = nil, _ body: (Key, Value, inout Bool) throws -> Void) throws {
-        try super.enumerate(start: start, end: end, body)
+    public func enumerate(start: Key? = nil,
+                                   end: Key? = nil,
+                                   _ body: (Key, Value, inout Bool) throws -> Void) throws {
+        return try super.enumerate(start: start,
+                                   end: end,
+                                   comparator: comparator,
+                                   body)
     }
 
 }

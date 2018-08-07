@@ -44,5 +44,30 @@ class BTreeDatabaseTests: XCTestCase {
             XCTFail("Error: \(error)")
         }
     }
+
+    func testCaseInsensitive() {
+        do {
+            let keyConverter = CaseInsensitiveUTF8DataConverter()
+            let valueConverter = CaseInsensitiveUTF8DataConverter()
+
+            let dbpath = "\(DatabaseManagerTests.docpath)/strings.db"
+            let btree = try BTreeDatabase(keyConverter: keyConverter,
+                                          valueConverter: valueConverter,
+                                          path: dbpath)
+
+            try btree.put(key: "Ball", value: "hello")
+            try btree.put(key: "apple", value: "hello")
+            try btree.put(key: "Zebra", value: "hello")
+            try btree.put(key: "Adam", value: "hello")
+            try btree.put(key: "DOG", value: "hello")
+            try btree.put(key: "CAT", value: "hello")
+
+            try btree.enumerate(start: "ap", end: "d") { (key, value, _) in
+                print("\(key)")
+            }
+        } catch {
+            XCTFail("Error: \(error)")
+        }
+    }
     
 }
